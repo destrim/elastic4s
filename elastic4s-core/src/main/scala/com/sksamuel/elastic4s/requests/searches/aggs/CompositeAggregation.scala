@@ -1,6 +1,6 @@
 package com.sksamuel.elastic4s.requests.searches.aggs
-
 import com.sksamuel.elastic4s.requests.script.Script
+import com.sksamuel.elastic4s.requests.searches.DateHistogramInterval
 import com.sksamuel.elastic4s.requests.searches.aggs.responses.{AggBucket, BucketAggregation, HasAggregations}
 import com.sksamuel.exts.OptionImplicits._
 
@@ -26,7 +26,9 @@ case class HistogramValueSource(override val name: String,
   extends ValueSource("histogram", name, field, script, order, missingBucket)
 
 case class DateHistogramValueSource(override val name: String,
-                                    interval: String,
+                                    calendarInterval: Option[String] = None,
+                                    fixedInterval: Option[String] = None,
+                                    interval: Option[String] = None,
                                     override val field: Option[String] = None,
                                     override val script: Option[Script] = None,
                                     override val order: Option[String] = None,
@@ -63,17 +65,17 @@ case class CompositeAggregation(name: String,
 object CompositeAggregation {
 
   case class CompositeAggBucket(
-    key: Map[String,Any],
-    docCount: Long,
-    override val data: Map[String, Any]
-  ) extends AggBucket with HasAggregations
+                                 key: Map[String,Any],
+                                 docCount: Long,
+                                 override val data: Map[String, Any]
+                               ) extends AggBucket with HasAggregations
 
   case class CompositeAggregationResult(
-    name: String,
-    buckets: Seq[CompositeAggBucket],
-    afterKey: Option[Map[String, Any]],
-    private val data: Map[String, Any]
-  ) extends BucketAggregation
+                                         name: String,
+                                         buckets: Seq[CompositeAggBucket],
+                                         afterKey: Option[Map[String, Any]],
+                                         private val data: Map[String, Any]
+                                       ) extends BucketAggregation
 
   implicit class CompositeAggResult(aggs: HasAggregations){
     def compositeAgg(name: String) : CompositeAggregationResult = {

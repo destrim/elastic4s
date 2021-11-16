@@ -49,7 +49,7 @@ class CompositeDateAggregationHttpTest extends AnyFreeSpec with DockerTests with
             sources = Seq(
               DateHistogramValueSource(
                 name = "dateHist",
-                interval = DateHistogramInterval.Month.interval,
+                interval = Some(DateHistogramInterval.Month.interval),
                 field = Some("premiere_date"),
                 script = None,
                 order = Some("ASC"),
@@ -72,6 +72,38 @@ class CompositeDateAggregationHttpTest extends AnyFreeSpec with DockerTests with
       )
     }
 
+    "should return formatted keys grouped by histogram calendar_interval" in {
+
+      val resp = client.execute {
+        search("compositedatehistaggs").matchAllQuery().aggs {
+
+          CompositeAggregation(
+            name = "agg1",
+            sources = Seq(
+              DateHistogramValueSource(
+                name = "dateHist",
+                calendarInterval = Some("month"),
+                field = Some("premiere_date"),
+                script = None,
+                order = Some("ASC"),
+                timeZone = None,
+                format = Some("dd.MM.yyyy"),
+                missingBucket = true
+              )
+            )
+          )
+        }
+      }.await.result
+
+      resp.totalHits shouldBe 6
+
+      val agg = resp.aggs.compositeAgg("agg1")
+      agg.buckets.map(_.copy(data = Map.empty)) shouldBe Seq(
+        CompositeAggBucket(Map("dateHist" -> "01.01.2008"), 3, Map.empty),
+        CompositeAggBucket(Map("dateHist" -> "01.03.2008"), 1, Map.empty),
+        CompositeAggBucket(Map("dateHist" -> "01.06.2008"), 2, Map.empty)
+      )
+    }
 
     "should return formatted keys grouped by histogram interval AFTER given key" in {
 
@@ -83,7 +115,7 @@ class CompositeDateAggregationHttpTest extends AnyFreeSpec with DockerTests with
             sources = Seq(
               DateHistogramValueSource(
                 name = "dateHist",
-                interval = DateHistogramInterval.Month.interval,
+                interval = Some(DateHistogramInterval.Month.interval),
                 field = Some("premiere_date"),
                 script = None,
                 order = Some("ASC"),
