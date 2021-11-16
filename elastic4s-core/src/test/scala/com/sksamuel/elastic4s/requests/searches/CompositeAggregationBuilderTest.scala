@@ -1,5 +1,4 @@
 package com.sksamuel.elastic4s.requests.searches
-
 import com.sksamuel.elastic4s.requests.script.Script
 import com.sksamuel.elastic4s.requests.searches.aggs.{CompositeAggregation, DateHistogramValueSource, HistogramValueSource, TermsValueSource}
 import org.scalatest.funsuite.AnyFunSuite
@@ -46,7 +45,7 @@ class CompositeAggregationBuilderTest extends AnyFunSuite with Matchers {
       CompositeAggregation("comp", sources = Seq(
         TermsValueSource("s1", field = Some("f1"), order = Some("desc"), missingBucket = true),
         HistogramValueSource("s2", 5, field = Some("f2"), order = Some("desc"), missingBucket = true),
-        DateHistogramValueSource("s3", "5d", field = Some("f3"), order = Some("desc"), timeZone = Some("+01:00"), missingBucket = true)
+        DateHistogramValueSource("s3", interval = Some("5d"), field = Some("f3"), order = Some("desc"), timeZone = Some("+01:00"), missingBucket = true)
       ))
     )
 
